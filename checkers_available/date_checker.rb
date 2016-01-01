@@ -5,9 +5,14 @@ class Date_Checker < Checker
 	def initialize
 		super
 
-		@years = {}
+		@christian_era_years = {}
 		1975.upto(2020) do |year|
-			@years[year] = 0
+			@christian_era_years[year] = 0
+		end
+
+		@buddhist_era_years = {}
+		2500.upto(2560) do |year|
+			@buddhist_era_years[year] = 0
 		end
 
 		@days_ab = {'mon' => 0, 'tues' => 0, 'wed' => 0, 'thurs' => 0, 'fri' => 0, 'sat' => 0, 'sun' => 0}
@@ -15,13 +20,19 @@ class Date_Checker < Checker
 
 		@days = {'monday' => 0, 'tuesday' => 0, 'wednesday' => 0, 'thursday' => 0, 'friday' => 0, 'saturday' => 0, 'sunday' => 0}
 		@months = {"january" => 0, "february" => 0, "march" => 0, "april" => 0, "may" => 0, "june" => 0, "july" => 0, "august" => 0, "september" => 0, "october" => 0, "november" => 0, "december" => 0}
-		@description = "Days, months and years"
+		@description = "Days, months, Christian Era years and Buddhist Era years"
 	end
 
 	def process_word (word, extras = nil)
-		@years.each_pair do |year, count|
+		@christian_era_years.each_pair do |year, count|
 			if /#{year}/.match word
-				@years[year] += 1
+				@christian_era_years[year] += 1
+			end
+		end
+
+		@buddhist_era_years.each_pair do |year, count|
+			if /#{year}/.match word
+				@buddhist_era_years[year] += 1
 			end
 		end
 
@@ -102,9 +113,21 @@ class Date_Checker < Checker
 			ret_str << "None found\n"
 		end
 
-		ret_str << "\nIncludes years\n"
+		ret_str << "\nIncludes Christian Era years\n"
 		disp = false
-		@years.each_pair do |number, count|
+		@christian_era_years.each_pair do |number, count|
+			unless count == 0
+				disp = true
+				ret_str << "#{number.to_s} = #{count.to_s} (#{((count.to_f/@total_words_processed) * 100).round(2).to_s}%)\n" unless count == 0
+			end
+		end
+		unless disp
+			ret_str << "None found\n"
+		end
+
+		ret_str << "\nIncludes Buddhist Era years\n"
+		disp = false
+		@buddhist_era_years.each_pair do |number, count|
 			unless count == 0
 				disp = true
 				ret_str << "#{number.to_s} = #{count.to_s} (#{((count.to_f/@total_words_processed) * 100).round(2).to_s}%)\n" unless count == 0
@@ -115,16 +138,34 @@ class Date_Checker < Checker
 		end
 
 		count_ordered = []
-		@years.each_pair do |year, count|
+		@christian_era_years.each_pair do |year, count|
 			count_ordered << [year, count] unless count == 0
 		end
-		@years = count_ordered.sort do |x,y|
+		@christian_era_years = count_ordered.sort do |x,y|
 			(x[1] <=> y[1]) * -1
 		end
 
-		ret_str << "\nYears (Top #{@cap_at.to_s})\n"
+		ret_str << "\nChristian Era Years (Top #{@cap_at.to_s})\n"
 		disp = false
-		@years[0, @cap_at].each do |data|
+		@christian_era_years[0, @cap_at].each do |data|
+			disp = true
+			ret_str << "#{data[0].to_s} = #{data[1].to_s} (#{((data[1].to_f/@total_words_processed) * 100).round(2).to_s}%)\n"
+		end
+		unless disp
+			ret_str << "None found\n"
+		end
+
+		count_ordered = []
+		@buddhist_era_years.each_pair do |year, count|
+			count_ordered << [year, count] unless count == 0
+		end
+		@buddhist_era_years = count_ordered.sort do |x,y|
+			(x[1] <=> y[1]) * -1
+		end
+
+		ret_str << "\nBuddhist Era Years (Top #{@cap_at.to_s})\n"
+		disp = false
+		@buddhist_era_years[0, @cap_at].each do |data|
 			disp = true
 			ret_str << "#{data[0].to_s} = #{data[1].to_s} (#{((data[1].to_f/@total_words_processed) * 100).round(2).to_s}%)\n"
 		end
